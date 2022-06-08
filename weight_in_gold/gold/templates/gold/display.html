@@ -1,0 +1,93 @@
+{% load static %}
+
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>How Much Are You Worth in Gold?</title>
+		<link rel="stylesheet" href="{% static 'gold/style.css' %}"/>
+	</head>
+	
+	<body>
+		<script type="text/javascript">
+			// Variables for my API key, start date, and the API request from Quandl
+			// If you are cloning this repository, you will need to get your own API key.
+			// The start date needs to be in a YYYY-MM-DD format.
+			var apiKey = '';
+			var start = "";
+			var goldRUrl = `https://www.quandl.com/api/v3/datasets/LBMA/GOLD.json?api_key=${apiKey}&column_index=2&start_date=${start}`;
+			// Global variable for the current price of gold.
+			var price;
+			
+			// This code was adapted from the Quandl example code from the lecture notes.
+			var getJson = function(url) {
+				fetch(url) 
+					.then(r => r.json())
+					.then(json => {
+						theData = json;
+						price = theData.dataset.data[0][1];
+					});
+			}
+			
+			// This code was also adapted from the Quandl example code from the lecture notes.
+			var go_fetch = function() {
+				getJson(goldRUrl);
+			}
+			
+			go_fetch();
+			
+			// All of this is building the HTML page.
+			var div = document.createElement('div');
+			div.setAttribute('class', 'yellow the-style');
+			document.querySelector('body').appendChild(div);
+		
+			var heading = document.createElement('h2');
+			heading.textContent = "How much are you worth in gold? Enter your weight in pounds, and see how much your body will net on the gold market!";
+			div.appendChild(heading);
+			
+			var calculateWeight = document.createElement('form');
+			calculateWeight.setAttribute('id', 'weight-calculator');
+			div.appendChild(calculateWeight);
+			
+			var enterWeight = document.createElement('input');
+			enterWeight.setAttribute('id', 'enter-weight');
+			enterWeight.setAttribute('type', 'text');
+			enterWeight.setAttribute('name', 'name');
+			calculateWeight.appendChild(enterWeight);
+			
+			var submitWeight = document.createElement('button');
+			submitWeight.setAttribute('type', 'button');
+			submitWeight.setAttribute('onclick', 'calculate(this)');
+			submitWeight.textContent = "Calculate";
+			calculateWeight.appendChild(submitWeight);
+			
+			var result = document.createElement('p');
+			result.textContent = "Enter a number in the input space, and press the Calculate button.";
+			div.appendChild(result);
+			
+			// A function similar to the one that gets the Quandl JSON, but it is for the unit conversion API.
+			var getConv = function(url, p) {
+					fetch(url) 
+						.then(r => r.json())
+						.then(json => {
+							data = json;
+							convertedWeight = data["Value"];
+							// The converted weight is multiplied by the price, and that is printed to the DOM.
+							weightInGold = (p * convertedWeight).toFixed(2);
+							result.textContent = `You are worth $${weightInGold} in gold!`;
+						});
+				}
+			
+			// A function that takes the input, tests if it is a number, and sends an API request to the unit conversion app.
+			var calculate = function(me) {
+				var weight = document.getElementById('enter-weight').value;
+				if (isNaN(weight)) {
+					result.textContent = "You did not enter a number! Try entering a number.";
+				}
+				else {
+					var convURL = `http://127.0.0.1:8000/unitconv/convert?from=lbs&to=t_oz&value=${weight}`;
+					getConv(convURL, price);
+				}
+			}
+		</script>
+	</body>
+</html>
