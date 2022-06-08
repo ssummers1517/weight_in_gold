@@ -1,0 +1,1 @@
+This web application is a school project from 2019.
